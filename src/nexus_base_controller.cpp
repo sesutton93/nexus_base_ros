@@ -22,24 +22,29 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *
- *
- *                           -----------------------------
- *                          |                             |
- *            left front M0 |                             | M3 right front
- *                          |                             |
- *                           -----------------------------
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *             left rear M1 |                             | M2 right rear
- *                          |                             |
- *                           -----------------------------
+
+*
+				        Power Switch
+				        Sonar0x11
+				 -------------------------
+				/                         \
+			       /		           \
+			      /			            \
+			M3   /			             \ M2
+		       INT0 /			              \INT1
+			   /			               \
+			  /			                \
+			 /			                 \
+			 \			                 /
+			  \			                /
+		  	   \			               /
+			    \			              /
+		  Sonar0x12  \		  	             / Sonar0x13
+			      \		                    /
+			       \	                   /
+				--------------------------
+					    M1
+
  */
 
 
@@ -98,24 +103,19 @@ private:
 	const float minOutput = -150;
 	const float maxOutput = 150;
 	double cmd_wheel_left_front_; // [rad/s]
-	double cmd_wheel_left_rear_; // [rad/s]
-	double cmd_wheel_right_rear_; // [rad/s]
+	double cmd_wheel_rear_; // [rad/s]
 	double cmd_wheel_right_front_; // [rad/s]
 	double prev_cmd_wheel_left_front_;
-	double prev_cmd_wheel_left_rear_;
-	double prev_cmd_wheel_right_rear_;
+	double prev_cmd_wheel_rear_;
 	double prev_cmd_wheel_right_front_;
 	double vel_wheel_left_front_; // [rad/s]
-	double vel_wheel_left_rear_; // [rad/s]
-	double vel_wheel_right_rear_; // [rad/s]
+	double vel_wheel_rear_; // [rad/s]
 	double vel_wheel_right_front_; // [rad/s]
 	double prev_vel_wheel_left_front_;
-	double prev_vel_wheel_left_rear_;
-	double prev_vel_wheel_right_rear_;
+	double prev_vel_wheel_rear_;
 	double prev_vel_wheel_right_front_;
 	double prev_cmd_motor_left_front_;
-	double prev_cmd_motor_left_rear_;
-	double prev_cmd_motor_right_rear_;
+	double prev_cmd_motor_rear_;
 	double prev_cmd_motor_right_front_;
 	double linear_velocity_x_;
 	double linear_velocity_y_;
@@ -126,8 +126,7 @@ private:
 	double heading_;
 	//instantiate PIDs
 	PIDControl myPID_wheel_left_front_ = PIDControl(Kp, Ki, Kd, TS, minOutput, maxOutput, AUTOMATIC, DIRECT);
-	PIDControl myPID_wheel_left_rear_ = PIDControl(Kp, Ki, Kd, TS, minOutput, maxOutput, AUTOMATIC, DIRECT);
-	PIDControl myPID_wheel_right_rear_ = PIDControl(Kp, Ki, Kd, TS, minOutput, maxOutput, AUTOMATIC, DIRECT);
+	PIDControl myPID_wheel_rear_ = PIDControl(Kp, Ki, Kd, TS, minOutput, maxOutput, AUTOMATIC, DIRECT);
 	PIDControl myPID_wheel_right_front_ = PIDControl(Kp, Ki, Kd, TS, minOutput, maxOutput, AUTOMATIC, DIRECT);
 };
 
@@ -137,20 +136,16 @@ private:
 
 NexusBaseController::NexusBaseController():
 	cmd_wheel_left_front_(0),
-	cmd_wheel_left_rear_(0),
-	cmd_wheel_right_rear_(0),
+	cmd_wheel_rear_(0),
 	cmd_wheel_right_front_(0),
 	prev_cmd_wheel_left_front_(0),
-	prev_cmd_wheel_left_rear_(0),
-	prev_cmd_wheel_right_rear_(0),
+	prev_cmd_wheel_rear_(0),
 	prev_cmd_wheel_right_front_(0),
 	vel_wheel_left_front_(0),
-	vel_wheel_left_rear_(0),
-	vel_wheel_right_rear_(0),
+	vel_wheel_rear_(0),
 	vel_wheel_right_front_(0),
 	prev_vel_wheel_left_front_(0),
-	prev_vel_wheel_left_rear_(0),
-	prev_vel_wheel_right_rear_(0),
+	prev_vel_wheel_rear_(0),
 	prev_vel_wheel_right_front_(0),
 	linear_velocity_x_(0),
 	linear_velocity_y_(0),
@@ -176,10 +171,8 @@ void NexusBaseController::cmdVelCallBack(const geometry_msgs::Twist::ConstPtr& t
 	// Mecanum (ROS Twist included), http://robotsforroboticists.com/drive-kinematics/
 	cmd_wheel_left_front_ = -(1/WHEEL_RADIUS) * (-twist_aux->linear.x - twist_aux->linear.y - 
 		(WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)*twist_aux->angular.z);
-	cmd_wheel_left_rear_ = -(1/WHEEL_RADIUS) * (-twist_aux->linear.x + twist_aux->linear.y - 
+	cmd_wheel_rear_ = -(1/WHEEL_RADIUS) * (-twist_aux->linear.x + twist_aux->linear.y - 
 		(WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)*twist_aux->angular.z);
-	cmd_wheel_right_rear_ = (1/WHEEL_RADIUS) * (-twist_aux->linear.x - twist_aux->linear.y + 
-		(WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)*twist_aux->angular.z); 
 	cmd_wheel_right_front_ = (1/WHEEL_RADIUS) * (-twist_aux->linear.x + twist_aux->linear.y + 
 		(WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)*twist_aux->angular.z);
 
@@ -191,12 +184,10 @@ void NexusBaseController::cmdVelCallBack(const geometry_msgs::Twist::ConstPtr& t
 		ROS_INFO("\ncmd_FL=%.2f\ncmd_FR=%.2f\ncmd_RL=%.2f\ncmd_RR=%.2f\n", 
 			cmd_wheel_left_front_, cmd_wheel_right_front_, cmd_wheel_left_rear_, 
 			cmd_wheel_right_rear_);
-	}
 */
 	//store the old values
 	prev_cmd_wheel_left_front_ = cmd_wheel_left_front_;
-	prev_cmd_wheel_left_rear_ = cmd_wheel_left_rear_;
-	prev_cmd_wheel_right_rear_ = cmd_wheel_right_rear_;
+	prev_cmd_wheel_rear_ = cmd_wheel_rear_;
 	prev_cmd_wheel_right_front_ = cmd_wheel_right_front_;
 }
 
@@ -218,9 +209,8 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 
 	// read encoders. Units are in encoder-ticks/loop-period
 	vel_wheel_left_front_ = rawvel_aux->enc0 * CPP2RADPS; //flip sign for the left side
-	vel_wheel_left_rear_ = rawvel_aux->enc1 * CPP2RADPS; //flip sign for the left side
-	vel_wheel_right_rear_ = rawvel_aux->enc2 * CPP2RADPS;
-	vel_wheel_right_front_ = rawvel_aux->enc3 * CPP2RADPS;
+	vel_wheel_rear_ = rawvel_aux->enc1 * CPP2RADPS; //flip sign for the left side
+	vel_wheel_right_front_ = rawvel_aux->enc2 * CPP2RADPS;
 
 	// print to console for debugging purpose
 /*	if( (vel_wheel_left_front_ != prev_vel_wheel_left_front_) || 
@@ -239,12 +229,9 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 	// - Inverse Kinematics -
 	// Taken from David Kohanbash, Drive Kinematics: Skid Steer & 
 	// Mecanum (ROS Twist included), http://robotsforroboticists.com/drive-kinematics/
-	linear_velocity_x_ = -(-vel_wheel_left_front_ + vel_wheel_right_front_ - vel_wheel_left_rear_ + 
-		vel_wheel_right_rear_) * (WHEEL_RADIUS/4);
-	linear_velocity_y_ = (vel_wheel_left_front_ + vel_wheel_right_front_ - vel_wheel_left_rear_ - 
-		vel_wheel_right_rear_) * (WHEEL_RADIUS/4);
-	angular_velocity_z_ = (vel_wheel_left_front_ + vel_wheel_right_front_ + vel_wheel_left_rear_ + 
-		vel_wheel_right_rear_) * (WHEEL_RADIUS/(4 * (WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)));
+	linear_velocity_x_ = -(-vel_wheel_left_front_ + vel_wheel_right_front_ - vel_wheel_rear_) * (WHEEL_RADIUS/4);
+	linear_velocity_y_ = (vel_wheel_left_front_ + vel_wheel_right_front_ - vel_wheel_rear_) * (WHEEL_RADIUS/4);
+	angular_velocity_z_ = (vel_wheel_left_front_ + vel_wheel_right_front_ + vel_wheel_rear_) * (WHEEL_RADIUS/(4 * (WHEEL_SEPARATION_WIDTH + WHEEL_SEPARATION_LENGTH)));
 
 	double delta_heading = angular_velocity_z_ * dt_; // [radians]
     	double delta_x = (linear_velocity_x_ * cos(heading_) - linear_velocity_y_ * sin(heading_)) * dt_; // [m]
@@ -259,33 +246,28 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 	// uncomment for feed forward (open loop) testing.
 /*	cmd_motor.motor0 = (short) lround(10*cmd_wheel_left_front_);
 	cmd_motor.motor1 = (short) lround(10*cmd_wheel_left_rear_);
-	cmd_motor.motor2 = (short) lround(10*cmd_wheel_right_rear_);
-	cmd_motor.motor3 = (short) lround(10*cmd_wheel_right_front_);
+	cmd_motor.motor2 = (short) lround(10*cmd_wheel_rear_);
 */
 	// do PID control
 	myPID_wheel_left_front_.PIDSetpointSet(cmd_wheel_left_front_);
+
 	myPID_wheel_left_front_.PIDInputSet(vel_wheel_left_front_);
 	myPID_wheel_left_front_.PIDCompute();
-	myPID_wheel_left_rear_.PIDSetpointSet(cmd_wheel_left_rear_);
-	myPID_wheel_left_rear_.PIDInputSet(vel_wheel_left_rear_);
-	myPID_wheel_left_rear_.PIDCompute();
-	myPID_wheel_right_rear_.PIDSetpointSet(cmd_wheel_right_rear_);
-	myPID_wheel_right_rear_.PIDInputSet(vel_wheel_right_rear_);
-	myPID_wheel_right_rear_.PIDCompute();
+	myPID_wheel_rear_.PIDSetpointSet(cmd_wheel_rear_);
+	myPID_wheel_rear_.PIDInputSet(vel_wheel_rear_);
+	myPID_wheel_rear_.PIDCompute();
 	myPID_wheel_right_front_.PIDSetpointSet(cmd_wheel_right_front_);
 	myPID_wheel_right_front_.PIDInputSet(vel_wheel_right_front_);
 	myPID_wheel_right_front_.PIDCompute();
 	// uncomment for closed loop feedback.
 	cmd_motor.motor0 = (short) round(myPID_wheel_left_front_.PIDOutputGet());
-	cmd_motor.motor1 = (short) round(myPID_wheel_left_rear_.PIDOutputGet());
-	cmd_motor.motor2 = (short) round(myPID_wheel_right_rear_.PIDOutputGet());
-	cmd_motor.motor3 = (short) round(myPID_wheel_right_front_.PIDOutputGet());
+	cmd_motor.motor1 = (short) round(myPID_wheel_rear_.PIDOutputGet());
+	cmd_motor.motor2 = (short) round(myPID_wheel_right_front_.PIDOutputGet());
 
 	//publish to motors when actuation is outside DEADBAND margin only.
 	if( cmd_motor.motor0 <= -DEADBAND || cmd_motor.motor0 >= DEADBAND ||
 		cmd_motor.motor1 <= -DEADBAND || cmd_motor.motor1 >= DEADBAND ||
-		cmd_motor.motor2 <= -DEADBAND || cmd_motor.motor2 >= DEADBAND ||
-		cmd_motor.motor3 <= -DEADBAND || cmd_motor.motor3 >= DEADBAND )
+		cmd_motor.motor2 <= -DEADBAND || cmd_motor.motor2 >= DEADBAND )
 		{
 		cmd_motor_pub_.publish(cmd_motor);
 		}

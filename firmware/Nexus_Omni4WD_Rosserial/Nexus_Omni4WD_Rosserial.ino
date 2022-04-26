@@ -99,19 +99,15 @@
 #define ENC1_B_PIN 15
 #define ENC2_A_PIN 16
 #define ENC2_B_PIN 17
-#define ENC3_A_PIN 18
-#define ENC3_B_PIN 19
 #define LED 13 //led is flashing when message received.
 
 // encoders
 volatile int encTicks0;
 volatile int encTicks1;
 volatile int encTicks2;
-volatile int encTicks3;
 int encTicks0_prev;
 int encTicks1_prev;
 int encTicks2_prev;
-int encTicks3_prev;
 volatile int pwmVal[4];
 unsigned long loopTimer;
 volatile int timeOutCnt;
@@ -132,7 +128,6 @@ void cmdMotors_CallBack(const nexus_base_ros::Motors& msg) {
      pwmVal[0] = constrain(msg.motor0, -255, 255);
      pwmVal[1] = constrain(msg.motor1, -255, 255);
      pwmVal[2] = constrain(msg.motor2, -255, 255);
-     pwmVal[3] = constrain(msg.motor3, -255, 255);
 
   if(!stopmotors){
      if(pwmVal[0] >= 0) {
@@ -156,24 +151,16 @@ void cmdMotors_CallBack(const nexus_base_ros::Motors& msg) {
        digitalWriteFast(M2_DIR_PIN, LOW);
      }
 
-     if(pwmVal[3] >= 0) {
-       digitalWriteFast(M3_DIR_PIN, HIGH);
-     }
-     else {
-       digitalWriteFast(M3_DIR_PIN, LOW);
-     }
      
      if(timeOutCnt==0) {
        analogWrite(M0_PWM_PIN, abs(pwmVal[0])); // first time write to start PWM
        analogWrite(M1_PWM_PIN, abs(pwmVal[1]));
        analogWrite(M2_PWM_PIN, abs(pwmVal[2]));
-       analogWrite(M3_PWM_PIN, abs(pwmVal[3]));
      }
      else {
        OCR2B = abs(pwmVal[0]); // fast PWM update M0
        OCR2A = abs(pwmVal[1]); // fast PWM update M1
        OCR1A = abs(pwmVal[2]); // fast PWM update M2
-       OCR1B = abs(pwmVal[3]); // fast PWM update M3
      }
     timeOutCnt = PWD_TIMEOUT_VAL; //set timer
     digitalWriteFast(LED, HIGH);
@@ -222,7 +209,6 @@ void disableMotors(){
   analogWrite(M0_PWM_PIN, 0);
   analogWrite(M1_PWM_PIN, 0);
   analogWrite(M2_PWM_PIN, 0);
-  analogWrite(M3_PWM_PIN, 0);
 }
 
 
