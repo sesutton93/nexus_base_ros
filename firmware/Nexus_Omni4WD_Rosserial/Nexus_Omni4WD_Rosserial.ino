@@ -32,14 +32,12 @@
  * commanding the wheels, PWM value signed int16
  * cmd_motor/motor0    left front
  * cmd_motor/motor1    left rear
- * cmd_motor/motor2    right rear
- * cmd_motor/motor3    right front
- *
+ * cmd_motor/motor2    rear
+= *
  * raw velocity read back (number of encoder increments/decrements each sample period)
  * wheel_vel/enc0    left front
- * wheel_vel/enc1    left rear
- * wheel_vel/enc2    right rear
- * wheel_vel/enc3    right front
+ * wheel_vel/enc1    right front
+ * wheel_vel/enc2    rear
  *
  * Start communiction with:
  * rosrun rosserial_python serial_node.py /dev/ttyUSB0
@@ -85,20 +83,18 @@
 #define LOOPTIME 1000000 / MSG_PUB_RATE // loop time in us
 #define PWD_TIMEOUT_VAL PWD_TIMEOUT * MSG_PUB_RATE // nof loop iterations before entering the low power mode when receiving no commands.
 
-#define M0_PWM_PIN 3 // TIM2 OC2B
-#define M0_DIR_PIN 2
-#define M1_PWM_PIN 11 // TIM2 OC2A
-#define M1_DIR_PIN 12
-#define M2_PWM_PIN 9 // TIM1 OC1A
-#define M2_DIR_PIN 8
-#define M3_PWM_PIN 10 // TIM1 OC1B
-#define M3_DIR_PIN 7
-#define ENC0_A_PIN 4
-#define ENC0_B_PIN 5
+#define M0_PWM_PIN 9 // TIM2 OC2B
+#define M0_DIR_PIN 8
+#define M1_PWM_PIN 10 // TIM2 OC2A
+#define M1_DIR_PIN 11
+#define M2_PWM_PIN 3 // TIM1 OC1A
+#define M2_DIR_PIN 2
+#define ENC0_A_PIN 6
+#define ENC0_B_PIN 7
 #define ENC1_A_PIN 14
 #define ENC1_B_PIN 15
-#define ENC2_A_PIN 16
-#define ENC2_B_PIN 17
+#define ENC2_A_PIN 4
+#define ENC2_B_PIN 5
 #define LED 13 //led is flashing when message received.
 
 // encoders
@@ -227,10 +223,6 @@ void IsrEnc_2_A() {
   encTicks2 -= digitalReadFast(ENC2_B_PIN) ? -1 : +1; // adjust counter + if A leads B
 }
 
-void IsrEnc_3_A() {
-  encTicks3 -= digitalReadFast(ENC3_B_PIN) ? -1 : +1; // adjust counter + if A leads B
-}
-
 
 
 
@@ -242,8 +234,6 @@ void setup() {
   pinMode(M1_DIR_PIN, OUTPUT);
   pinMode(M2_PWM_PIN, OUTPUT); //right bottom wheel
   pinMode(M2_DIR_PIN, OUTPUT);
-  pinMode(M3_PWM_PIN, OUTPUT); //right front wheel
-  pinMode(M3_DIR_PIN, OUTPUT);
 
   pinMode(ENC0_A_PIN, INPUT); //left front enc
   pinMode(ENC0_B_PIN, INPUT);
@@ -251,15 +241,13 @@ void setup() {
   pinMode(ENC1_B_PIN, INPUT);
   pinMode(ENC2_A_PIN, INPUT); //right bottom enc
   pinMode(ENC2_B_PIN, INPUT);
-  pinMode(ENC3_A_PIN, INPUT); //right front enc
-  pinMode(ENC3_B_PIN, INPUT);
+
 
   pinMode(LED, OUTPUT);
 
   PCattachInterrupt(ENC0_A_PIN, IsrEnc_0_A, RISING);
   PCattachInterrupt(ENC1_A_PIN, IsrEnc_1_A, RISING);
   PCattachInterrupt(ENC2_A_PIN, IsrEnc_2_A, RISING);
-  PCattachInterrupt(ENC3_A_PIN, IsrEnc_3_A, RISING);
 
   // modify PWM frequency of motors
   TCCR1B = (TCCR1B & 0xF8) | 0x01;    // Pin9,Pin10 PWM 31250Hz
@@ -284,18 +272,15 @@ void loop() {
   //enc_msg.enc0 = pwmVal[0];
   //enc_msg.enc1 = pwmVal[1];
   //enc_msg.enc2 = pwmVal[2];
-  //enc_msg.enc3 = pwmVal[3];
   
   // calculate delta-counts for the current cycle.
   enc_msg.enc0 = encTicks0 - encTicks0_prev;
   enc_msg.enc1 = encTicks1 - encTicks1_prev;
   enc_msg.enc2 = encTicks2 - encTicks2_prev;
-  enc_msg.enc3 = encTicks3 - encTicks3_prev;
 
   encTicks0_prev = encTicks0;
   encTicks1_prev = encTicks1;
   encTicks2_prev = encTicks2;
-  encTicks3_prev = encTicks3;
 
   pub.publish(&enc_msg);
 
