@@ -91,8 +91,8 @@
 #define M2_DIR_PIN 2
 #define ENC0_A_PIN 6
 #define ENC0_B_PIN 7
-#define ENC1_A_PIN 14
-#define ENC1_B_PIN 15
+#define ENC1_A_PIN A0
+#define ENC1_B_PIN A1
 #define ENC2_A_PIN 4
 #define ENC2_B_PIN 5
 #define LED 13 //led is flashing when message received.
@@ -252,6 +252,7 @@ void setup() {
   // modify PWM frequency of motors
   TCCR1B = (TCCR1B & 0xF8) | 0x01;    // Pin9,Pin10 PWM 31250Hz
   TCCR2B = (TCCR2B & 0xF8) | 0x01;    // Pin3,Pin11 PWM 31250Hz
+
 
   nh.initNode();
   nh.subscribe(sub);
