@@ -64,7 +64,7 @@
 #define QUEUE_SIZE 1 //subscriber buffer size
 #define WHEEL_RADIUS 0.05 // [m]
 #define ENC_CPR 12.0	// encoder counts/rev.
-#define GEAR_REDUC 1.0 // gears reduction ratio
+#define GEAR_REDUC 64.0 // gears reduction ratio
 #define TS (1/20.0)	// loop period in wheel-base Arduino (via parameter sever?)
 #define CPP2RADPS (2.0*M_PI/(TS*ENC_CPR*GEAR_REDUC))	// counts per loop period to rad/s conversion factor.
 #define DEADBAND 10 // Stops actuating motors when: -DEADBAND < actuation < DEADBAND
@@ -123,7 +123,9 @@ private:
 	double ax_;
 	double ay_;
 	double omega_;
-
+	double prev_ax_;
+	double prev_ay_;
+	double prev_omega_;
 
 
 	//instantiate PIDs
@@ -158,7 +160,10 @@ NexusBaseController::NexusBaseController():
 	heading_(0),
 	ax_(0),
 	ay_(0),
-	omega_(0)
+	omega_(0),
+        prev_ax_(0),
+        prev_ay_(0),
+        prev_omega_(0)
 {
 	cmd_motor_pub_ = nh_.advertise<nexus_base_ros::Motors>("cmd_motor", QUEUE_SIZE);
 	odom_pub_ = nh_.advertise<nav_msgs::Odometry>("sensor_odom", QUEUE_SIZE);
@@ -177,13 +182,21 @@ void NexusBaseController::cmdVelCallBack(const geometry_msgs::Twist::ConstPtr& t
 	ax_ = twist_aux->linear.x;
 	ay_ = twist_aux->linear.y;
 	omega_ = twist_aux->angular.z;
+   
+        ROS_INFO("\nax=%.2f\nay=%.2f\nomega=%.2f\n", 
+		ax_, ay_, omega_);
 
-	ROS_INFO("\nax=%.2f\nay=%.2f\nomega=%.2f\n", 
-			ax_, ay_, omega_);
+        cmd_wheel_m0_ = ((-2./3.) * ax_) + ((1./3.) * omega_);
+        cmd_wheel_m1_ = ((1./3.) * ax_) + ((1./sqrt(3.)) * ay_) + ((1./3.) * omega_);
+        cmd_wheel_m2_ = -((1./3.) * ax_) - ((1./sqrt(3.)) * ay_) + ((1./3.) * omega_);
+	        
+       
+	//store the old values
+	prev_ax_ = ax_;
+	prev_ay_ = ax_;
+	prev_omega_ = omega_;
 
-	cmd_wheel_m0_ = ((-2./3.) * ax_) + ((1./3.) * omega_);
-	cmd_wheel_m1_ = ((1./3.) * ax_) + ((1./sqrt(3.)) * ay_) + ((1./3.) * omega_);
-	cmd_wheel_m2_ = ((1./3.) * ax_) - ((1./sqrt(3.)) * ay_) + ((1./3.) * omega_);
+
 	
 	//print to console for debugging purpose
 	if( (cmd_wheel_m2_!=prev_cmd_wheel_m2_) || 
@@ -225,6 +238,8 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 	if( (vel_wheel_m2_ != prev_vel_wheel_m2_) || 
 		(vel_wheel_m1_ != prev_vel_wheel_m1_) || 
 		(vel_wheel_m0_ != prev_vel_wheel_m0_)) {
+                ROS_INFO("\nset_m0=%.2f\nset_m1=%.2f\nset_m2=%.2f\n", 
+			cmd_wheel_m0_, cmd_wheel_m1_, cmd_wheel_m2_);
 		ROS_INFO("\nvel_m0=%.2f\nvel_m1=%.2f\nvel_m2=%.2f\n", 
 			vel_wheel_m0_, vel_wheel_m1_, vel_wheel_m2_);
 	}
@@ -246,8 +261,8 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
     	heading_ += delta_heading;
 	//ROS_INFO("\nx=%.1f, y=%.1f, heading=%.2f\n", x_pos_, y_pos_, heading_);
 
-/*	// uncomment for feed forward (open loop) testing.
-	cmd_motor.motor0 = (short) lround(10*cmd_wheel_m0_);
+	// uncomment for feed forward (open loop) testing.
+/*	cmd_motor.motor0 = (short) lround(10*cmd_wheel_m0_);
 	cmd_motor.motor1 = (short) lround(10*cmd_wheel_m1_);
 	cmd_motor.motor2 = (short) lround(10*cmd_wheel_m2_);
 */
@@ -256,7 +271,7 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 	myPID_wheel_m0_.PIDInputSet(vel_wheel_m0_);
 	myPID_wheel_m0_.PIDCompute();
 	myPID_wheel_m1_.PIDSetpointSet(cmd_wheel_m1_);
-	myPID_wheel_m1_.PIDInputSet(vel_wheel_m1_);
+	myPID_wheel_m1_.PIDInputSet(-vel_wheel_m1_);
 	myPID_wheel_m1_.PIDCompute();
 	myPID_wheel_m2_.PIDSetpointSet(cmd_wheel_m2_);
 	myPID_wheel_m2_.PIDInputSet(vel_wheel_m2_);
@@ -268,13 +283,13 @@ void NexusBaseController::rawVelCallBack(const nexus_base_ros::Encoders::ConstPt
 	cmd_motor.motor2 = (short) round(myPID_wheel_m2_.PIDOutputGet());
 
 	//publish to motors when actuation is outside DEADBAND margin only.
-//	if( cmd_motor.motor0 <= -DEADBAND || cmd_motor.motor0 >= DEADBAND ||
-//		cmd_motor.motor1 <= -DEADBAND || cmd_motor.motor1 >= DEADBAND ||
-//		cmd_motor.motor2 <= -DEADBAND || cmd_motor.motor2 >= DEADBAND )
-//		{
-//	        cmd_motor_pub_.publish(cmd_motor);
-//		}
-
+/*	if( cmd_motor.motor0 <= -DEADBAND || cmd_motor.motor0 >= DEADBAND ||
+		cmd_motor.motor1 <= -DEADBAND || cmd_motor.motor1 >= DEADBAND ||
+		cmd_motor.motor2 <= -DEADBAND || cmd_motor.motor2 >= DEADBAND )
+		{
+	        cmd_motor_pub_.publish(cmd_motor);
+		}
+*/
 	// publish to motors only when actuation value changes.
 	if( (cmd_motor.motor0 != prev_cmd_motor_m0_) || 
 		(cmd_motor.motor1 != prev_cmd_motor_m1_) || 

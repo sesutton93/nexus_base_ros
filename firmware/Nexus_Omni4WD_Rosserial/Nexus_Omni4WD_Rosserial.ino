@@ -30,14 +30,14 @@
  * and four PID wheel controllers.
  *
  * commanding the wheels, PWM value signed int16
- * cmd_motor/motor0    left front
- * cmd_motor/motor1    left rear
- * cmd_motor/motor2    rear
+ * cmd_motor/motor0    rear
+ * cmd_motor/motor1    right
+ * cmd_motor/motor2    left
 = *
  * raw velocity read back (number of encoder increments/decrements each sample period)
- * wheel_vel/enc0    left front
- * wheel_vel/enc1    right front
- * wheel_vel/enc2    rear
+ * wheel_vel/enc0    rear
+ * wheel_vel/enc1    right
+ * wheel_vel/enc2    left
  *
  * Start communiction with:
  * rosrun rosserial_python serial_node.py /dev/ttyUSB0
@@ -45,26 +45,30 @@
  * Sometimes it takes a moment to establish the communication because a false character has to be flushed
  * from the buffer first.
  *
- *
- *                           -----------------------------
- *                          |                             |
- *            left front M0 |                             | M3 right front
- *                          |                             |
- *                           -----------------------------
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *                          |                             |
- *             left rear M1 |                             | M2 right rear
- *                          |                             |
- *                           -----------------------------
- *
- *
+*
+				        Power Switch
+				        Sonar0x11
+				 -------------------------
+				/                         \
+			       /		           \
+			      /			            \
+			m2   /			             \ m1
+		       INT0 /			              \INT1
+			   /			               \
+			  /			                \
+			 /			                 \
+			 \			                 /
+			  \			                /
+		  	   \			               /
+			    \			              /
+		  Sonar0x12  \		  	             / Sonar0x13
+			      \		                    /
+			       \	                   /
+				--------------------------
+					    m0
+
  */
+
 
 #include <ros.h>
 #include <nexus_base_ros/Encoders.h>
@@ -77,17 +81,17 @@
                                 // and http://code.google.com/p/digitalwritefast/
 
 #define MSG_PUB_RATE 20 // publishing rate in Hz.
-#define PWD_TIMEOUT 3 // motor power time-out in s.
+//#define PWD_TIMEOUT 3 // motor power time-out in s.
 
 // control loop timing constants
 #define LOOPTIME 1000000 / MSG_PUB_RATE // loop time in us
-#define PWD_TIMEOUT_VAL PWD_TIMEOUT * MSG_PUB_RATE // nof loop iterations before entering the low power mode when receiving no commands.
+//#define PWD_TIMEOUT_VAL PWD_TIMEOUT * MSG_PUB_RATE // nof loop iterations before entering the low power mode when receiving no commands.
 
-#define M0_PWM_PIN 9 // TIM2 OC2B
+#define M0_PWM_PIN 9 // OC1A
 #define M0_DIR_PIN 8
-#define M1_PWM_PIN 10 // TIM2 OC2A
+#define M1_PWM_PIN 10 // OC1B
 #define M1_DIR_PIN 11
-#define M2_PWM_PIN 3 // TIM1 OC1A
+#define M2_PWM_PIN 3 //OC2B
 #define M2_DIR_PIN 2
 #define ENC0_A_PIN 6
 #define ENC0_B_PIN 7
@@ -104,7 +108,7 @@ volatile int encTicks2;
 int encTicks0_prev;
 int encTicks1_prev;
 int encTicks2_prev;
-volatile int pwmVal[4];
+volatile int pwmVal[3];
 unsigned long loopTimer;
 volatile int timeOutCnt;
 volatile int ledCnt = 0;
@@ -154,11 +158,11 @@ void cmdMotors_CallBack(const nexus_base_ros::Motors& msg) {
        analogWrite(M2_PWM_PIN, abs(pwmVal[2]));
      }
      else {
-       OCR2B = abs(pwmVal[0]); // fast PWM update M0
-       OCR2A = abs(pwmVal[1]); // fast PWM update M1
-       OCR1A = abs(pwmVal[2]); // fast PWM update M2
+       OCR1A = abs(pwmVal[0]); // fast PWM update M0
+       OCR1B = abs(pwmVal[1]); // fast PWM update M1
+       OCR2B = abs(pwmVal[2]); // fast PWM update M2
      }
-    timeOutCnt = PWD_TIMEOUT_VAL; //set timer
+    //timeOutCnt = PWD_TIMEOUT_VAL; //set timer
     digitalWriteFast(LED, HIGH);
     ledCnt = 20;
   }
@@ -228,18 +232,18 @@ void IsrEnc_2_A() {
 
 
 void setup() {
-  pinMode(M0_PWM_PIN, OUTPUT); //left front wheel
+  pinMode(M0_PWM_PIN, OUTPUT);
   pinMode(M0_DIR_PIN, OUTPUT);
-  pinMode(M1_PWM_PIN, OUTPUT); //left bottom wheel
+  pinMode(M1_PWM_PIN, OUTPUT);
   pinMode(M1_DIR_PIN, OUTPUT);
-  pinMode(M2_PWM_PIN, OUTPUT); //right bottom wheel
+  pinMode(M2_PWM_PIN, OUTPUT);
   pinMode(M2_DIR_PIN, OUTPUT);
 
-  pinMode(ENC0_A_PIN, INPUT); //left front enc
+  pinMode(ENC0_A_PIN, INPUT);
   pinMode(ENC0_B_PIN, INPUT);
-  pinMode(ENC1_A_PIN, INPUT); //left bottom enc
+  pinMode(ENC1_A_PIN, INPUT);
   pinMode(ENC1_B_PIN, INPUT);
-  pinMode(ENC2_A_PIN, INPUT); //right bottom enc
+  pinMode(ENC2_A_PIN, INPUT);
   pinMode(ENC2_B_PIN, INPUT);
 
 
@@ -250,8 +254,8 @@ void setup() {
   PCattachInterrupt(ENC2_A_PIN, IsrEnc_2_A, RISING);
 
   // modify PWM frequency of motors
-  TCCR1B = (TCCR1B & 0xF8) | 0x01;    // Pin9,Pin10 PWM 31250Hz
-  TCCR2B = (TCCR2B & 0xF8) | 0x01;    // Pin3,Pin11 PWM 31250Hz
+  TCCR1B = (TCCR1B & 0b11111000) | 0x01;    // Pin9,Pin10 PWM 31250Hz
+  TCCR2B = (TCCR2B & 0b11111000) | 0x01;    // Pin3,Pin11 PWM 31250Hz
 
 
   nh.initNode();
@@ -261,7 +265,7 @@ void setup() {
   nh.advertiseService(halt_srv);
   nh.advertiseService(arming_srv);
 
-  timeOutCnt = PWD_TIMEOUT_VAL;
+  //timeOutCnt = PWD_TIMEOUT_VAL;
   loopTimer = micros() + LOOPTIME; //Set the loopTimer variable.
 }
 
@@ -285,11 +289,11 @@ void loop() {
 
   pub.publish(&enc_msg);
 
-  timeOutCnt--;
-  if(timeOutCnt <= 0) {
-    disableMotors();
-    timeOutCnt=0; //keep <=0
-  }
+  //timeOutCnt--;
+  //if(timeOutCnt <= 0) {
+  //  disableMotors();
+  //  timeOutCnt=0; //keep <=0
+  //}
 
   ledCnt--;
   if(ledCnt <= 0) {

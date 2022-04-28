@@ -10,7 +10,7 @@
 
   <!-- Bringup nexus_base -->
   <node pkg="rosserial_python" type="serial_node.py" name="nexus_base" respawn="false" output="screen" launch-prefix="xterm -e" >
-    <param name="port" value="/dev/ttyUSB0" />
+    <param name="port" value="/dev/omni_controller" />
     <param name="baud" value="57600" />
   </node>
   
