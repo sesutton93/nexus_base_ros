@@ -211,6 +211,8 @@ if __name__=="__main__":
     #     twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = 0.0
     #     pub.publish(twist)
     
+    
+    twist = Twist()
     twist.linear.x = 10.0
     twist.linear.y = 0.0
     twist.linear.z = 0.0
@@ -218,19 +220,20 @@ if __name__=="__main__":
     twist.angular.x = 0.0
     twist.angular.y = 0.0
     twist.angular.z = 0.0
-    
-    time.sleep(2)
+    pub.publish(twist)
+
+#    time.sleep(2)
     
     twist.linear.x = 0.0
     
     twist.angular.z = 5.0
-    
-    time.sleep(3)
+    pub.publish(twist)
+#    time.sleep(3)
     
     twist.linear.x = 10.0
     twist.angular.z = 0.0
-    
-    time.sleep(2)
+    pub.publish(twist)
+#    time.sleep(2)
     
     twist.linear.x = 0.0
     pub.publish(twist)
