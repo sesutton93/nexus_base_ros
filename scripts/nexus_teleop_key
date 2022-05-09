@@ -216,9 +216,18 @@ if __name__=="__main__":
     print(msg)
     while not rospy.is_shutdown():
     	key = getKey()
+	if  key == "q":
+		twist.linear.x = 0.0
+        	twist.linear.y = 0.0
+        	twist.linear.z = 0.0
+
+        	twist.angular.x = 0.0
+        	twist.angular.y = 0.0
+        	twist.angular.z = 0.0
+		break
     	twist = Twist()
-    	twist.linear.x = 10.0
-    	twist.linear.y = 0.0
+    	twist.linear.x = 0.0
+    	twist.linear.y = 5.0
     	twist.linear.z = 0.0
 
     	twist.angular.x = 0.0
@@ -231,12 +240,12 @@ if __name__=="__main__":
     
     	twist.linear.x = 0.0
     
-    	twist.angular.z = 5.0
+    	twist.angular.z = -5.0
     	pub.publish(twist)
     	#time.sleep(3)
     	getKey()
     
-    	twist.linear.x = 10.0
+    	twist.linear.y = 5.0
     	twist.angular.z = 0.0
     	pub.publish(twist)
     	#time.sleep(2)
