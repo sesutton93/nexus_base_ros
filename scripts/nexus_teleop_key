@@ -224,6 +224,7 @@ if __name__=="__main__":
         	twist.angular.x = 0.0
         	twist.angular.y = 0.0
         	twist.angular.z = 0.0
+		pub.publish(twist)
 		break
     	twist = Twist()
     	twist.linear.x = 0.0
@@ -238,7 +239,7 @@ if __name__=="__main__":
     	#time.sleep(2)
 	getKey()
     
-    	twist.linear.x = 0.0
+    	twist.linear.y = 0.0
     
     	twist.angular.z = -5.0
     	pub.publish(twist)
@@ -251,7 +252,7 @@ if __name__=="__main__":
     	#time.sleep(2)
 	getKey()
     
-    	twist.linear.x = 0.0
+    	twist.linear.y = 0.0
     	pub.publish(twist)
     
 
