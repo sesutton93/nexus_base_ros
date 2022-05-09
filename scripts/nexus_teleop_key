@@ -208,6 +208,15 @@ if __name__=="__main__":
     #control_linear_vel_x= 0.0
     #control_linear_vel_y= 0.0
     #control_angular_vel = 0.0
+    twist = Twist()
+    twist.linear.y = 0.0
+    twist.linear.x = 0.0
+    twist.linear.z = 0.0
+    twist.angular.z = 0.0
+
+    pub.publish(twist)
+
+    time.sleep(3)
 
     #try:
     #    print(msg)
@@ -285,11 +294,12 @@ if __name__=="__main__":
     #     pub.publish(twist)
     
     
-    print(msg)
-    if not rospy.is_shutdown():
+    print("Square starting")
+    x = 0
+    while x <= 2:
 
         twist = Twist()
-        twist.linear.y = 8.0
+        twist.linear.y = 6.0
         twist.linear.x = 0.0
         twist.linear.z = 0.0
     
@@ -302,11 +312,11 @@ if __name__=="__main__":
     
         twist.linear.y = 0.0
     
-        twist.angular.z = -5.0
+        twist.angular.z = 2.25
         pub.publish(twist)
         time.sleep(3)
     
-        twist.linear.y = 8.0
+        twist.linear.y = 4.0
         twist.angular.z = 0.0
         pub.publish(twist)
         time.sleep(2)
@@ -315,7 +325,7 @@ if __name__=="__main__":
         pub.publish(twist)
 
 	time.sleep(3)
-    
+        x += 1
 
     if os.name != 'nt':
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
