@@ -132,150 +132,62 @@ if __name__=="__main__":
     target_linear_vel_x = 0.0
     target_linear_vel_y = 0.0
     target_angular_vel  = 0.0
-    #control_linear_vel_x= 0.0
-    #control_linear_vel_y= 0.0
-    #control_angular_vel = 0.0
+    try:
+        print(msg)
+        while not rospy.is_shutdown():
+            key = getKey()
+            if key == 'w' :
+                target_linear_vel_y = 5.0
+	        target_angular_vel = 0.0
+                status = status + 1
+                #print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
+            elif key == 'e' :
+                target_angular_vel = 5.0
+	        target_linear_vel_y = 0.0
+                status = status + 1
+                #print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
+            elif key == ' ':
+                target_linear_vel_x = 0.0
+                target_linear_vel_y = 0.0
+                target_linear_vel_z = 0.0
+	        target_angular_vel = 0.0
+            else:
+                if (key == '\x03'):
+                    break
 
-    #try:
-    #    print(msg)
-    #     while not rospy.is_shutdown():
-    #         key = getKey()
-    #         if key == 'a' :
-    #             target_linear_vel_x = checkLinearLimitVelocity(target_linear_vel_x + LIN_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == 'd' :
-    #             target_linear_vel_x = checkLinearLimitVelocity(target_linear_vel_x - LIN_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == 'w' :
-    #             target_linear_vel_y = checkLinearLimitVelocity(target_linear_vel_y + LIN_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == 's' :
-    #             target_linear_vel_y = checkLinearLimitVelocity(target_linear_vel_y - LIN_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == 'q' :
-    #             target_angular_vel = checkAngularLimitVelocity(target_angular_vel + ANG_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == 'e' :
-    #             target_angular_vel = checkAngularLimitVelocity(target_angular_vel - ANG_VEL_STEP_SIZE)
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y, target_angular_vel))
-    #         elif key == ' ':
-    #             target_linear_vel_x = 0.0
-    #             target_linear_vel_y = 0.0
-    #             #control_linear_vel_x  = 0.0
-    #             #control_linear_vel_y  = 0.0
-    #             target_angular_vel = 0.0
-    #             #control_angular_vel = 0.0
-    #             status = status + 1
-    #             print(vels(target_linear_vel_x, target_linear_vel_y ,target_angular_vel))
-    #         else:
-    #             if (key == '\x03'):
-    #                 break
+            if status == 20:
+                print(msg)
+                status = 0
+                prev_status = -1
 
-    #         if status == 20 :
-    #             print(msg)
-    #             status = 0
-    #             prev_status = -1
+            if status != prev_status:
+                twist = Twist()
 
-    #         if status != prev_status:
-    #             twist = Twist()
+                #control_linear_vel_x = makeSimpleProfile(control_linear_vel_x, target_linear_vel_x, (LIN_VEL_STEP_SIZE/2.0))
+                #control_linear_vel_y = makeSimpleProfile(control_linear_vel_y, target_linear_vel_y, (LIN_VEL_STEP_SIZE/2.0))
+                #twist.linear.x = control_linear_vel_x;
+                #twist.linear.y = control_linear_vel_y; 
+	            #twist.linear.z = 0.0
 
-    #             #control_linear_vel_x = makeSimpleProfile(control_linear_vel_x, target_linear_vel_x, (LIN_VEL_STEP_SIZE/2.0))
-    #             #control_linear_vel_y = makeSimpleProfile(control_linear_vel_y, target_linear_vel_y, (LIN_VEL_STEP_SIZE/2.0))
-    #             #twist.linear.x = control_linear_vel_x;
-    #             #twist.linear.y = control_linear_vel_y; 
-	#             #twist.linear.z = 0.0
-
-    #             #control_angular_vel = makeSimpleProfile(control_angular_vel, target_angular_vel, (ANG_VEL_STEP_SIZE/2.0))
-    #             #twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = control_angular_vel
+                #control_angular_vel = makeSimpleProfile(control_angular_vel, target_angular_vel, (ANG_VEL_STEP_SIZE/2.0))
+                #twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = control_angular_vel
                 
-    #             twist.linear.x = target_linear_vel_x
-    #             twist.linear.y = target_linear_vel_y
-    #             twist.linear.z = 0.0
-    #             twist.angular.x = 0.0
-    #             twist.angular.y = 0.0
-    #             twist.angular.z = target_angular_vel
-    #             pub.publish(twist)
-    #         prev_status = status
-    # except:
-    #     print(e)
+                twist.linear.x = target_linear_vel_x
+                twist.linear.y = target_linear_vel_y
+                twist.linear.z = 0.0
+                twist.angular.x = 0.0
+                twist.angular.y = 0.0
+                twist.angular.z = target_angular_vel
+                pub.publish(twist)
+            prev_status = status
+    except:
+        print(e)
 
-    # finally:
-    #     twist = Twist()
-    #     twist.linear.x = 0.0; twist.linear.y = 0.0; twist.linear.z = 0.0
-    #     twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = 0.0
-    #     pub.publish(twist)
-    
-    
-    
-    print(msg)
-    while not rospy.is_shutdown():
-    	key = getKey()
-	if  key == "q":
-		twist = Twist()
-		twist.linear.x = 0.0
-        	twist.linear.y = 0.0
-        	twist.linear.z = 0.0
-
-        	twist.angular.x = 0.0
-        	twist.angular.y = 0.0
-        	twist.angular.z = 0.0
-		pub.publish(twist)
-		break
-    	twist = Twist()
-    	twist.linear.x = 0.0
-    	twist.linear.y = 5.0
-    	twist.linear.z = 0.0
-
-    	twist.angular.x = 0.0
-    	twist.angular.y = 0.0
-    	twist.angular.z = 0.0
-    	pub.publish(twist)
-
-    	#time.sleep(2)
-	key = getKey()
-    
-	twist = Twist()
-    	twist.linear.y = 0.0
-	twist.linear.x = 0.0
-	twist.linear.z = 0.0
-    
-    	twist.angular.z = -5.0
-	twist.angular.x = 0.0
-	twist.angular.y = 0.0
-    	pub.publish(twist)
-    	#time.sleep(3)
-    	key = getKey()
-    
-    	twist = Twist()
-	twist.linear.x = 0.0
-        twist.linear.z = 0.0
-	twist.linear.y = 5.0
-    
-        twist.angular.z = 0.0
-        twist.angular.x = 0.0
-        twist.angular.y = 0.0
-    	pub.publish(twist)
-    	#time.sleep(2)
-	getKey()
-    
-    	
-	twist = Twist()
-        twist.linear.x = 0.0
-        twist.linear.z = 0.0
-        twist.linear.y = 0.0
-    
-        twist.angular.z = 0.0
-        twist.angular.x = 0.0
-        twist.angular.y = 0.0
-    	pub.publish(twist)
-    
+    finally:
+        twist = Twist()
+        twist.linear.x = 0.0; twist.linear.y = 0.0; twist.linear.z = 0.0
+        twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = 0.0
+        pub.publish(twist)
 
     if os.name != 'nt':
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-
