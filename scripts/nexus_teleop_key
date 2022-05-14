@@ -31,6 +31,8 @@
 import rospy
 from geometry_msgs.msg import Twist
 import sys, select, os, time
+import omnibot
+import numpy as np
 if os.name == 'nt':
   import msvcrt
 else:
@@ -42,6 +44,29 @@ MAX_ANG_VEL = 100.00
 
 LIN_VEL_STEP_SIZE = 5.
 ANG_VEL_STEP_SIZE = 5.
+
+class RandomTurns():
+    def __init__(self, phi_abs_m=30, phi_abs_std=10, p_angle=0.5):
+        self.phi_abs_m = phi_abs_m
+        self.phi_abs_std = phi_abs_std
+        self.p_angle = p_angle
+           
+    def get_angle(self, size=1):
+        '''
+        Samples turn angle from 
+        Args:
+            size:
+
+        Returns:
+
+        '''
+        magnitude_abs = np.random.normal(self.phi_abs_m, self.phi_abs_std, size=size)
+        direction_binary = (np.random.binomial(n=1, p=self.p_angle,size=size)-0.5)*2*-1
+        if size==1:
+            angle = magnitude_abs[0]*direction_binary[0]
+        else:
+            angle = magnitude_abs*direction_binary
+        return angle
 
 class OmnibotController:
     def __init__(self):
@@ -63,14 +88,14 @@ class OmnibotController:
         time.sleep(3)
         
 
-    def turn(self, degrees, dir):
+    def turn(self, degrees):
         # Assuming a fixed turning time of 3 s, 1 degree is done with
         # an angluar speed set to 0.05
         
         speed = 0.05 * degrees
         
-        if dir == "left":
-            speed = -speed
+        #if dir == "left":
+        #    speed = -speed
             
         self.twist.linear.y = 0.0
         self.twist.linear.x = 0.0
@@ -156,13 +181,19 @@ class OmnibotController:
 if __name__=="__main__":
     
     bot = OmnibotController()
+    turn = RandomTurns()
     
-    bot.move(50, "forward")
-    bot.stop()
-    bot.move_step("forward")
-    bot.stop()
-    bot.turn(40, "right")
-    bot.move_step("forward")
+    #bot.move(50, "forward")
+    #bot.stop()
+    #bot.move_step("forward")
+    #bot.stop()
+    angle = turn.get_angle()
+    print("turning " +  str(angle))
+    bot.turn(angle)
+    bot.move(30, "forward")
+    angle = turn.get_angle()
+    print("turning " + str(angle))
+    bot.turn(angle)
     #bot.turn(90, "right")
     #bot.stop()
     
