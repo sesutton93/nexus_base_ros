@@ -20,7 +20,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs 
   sensor_msgs 
-  omnibot
+  omnibot_controller
+  helpers
+  altfly
   rosserial_arduino
 )
 

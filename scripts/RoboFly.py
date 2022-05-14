@@ -1,26 +1,8 @@
-#!/usr/bin/env python
-
-#from nexus_base_ros.scripts.omnibot_controller import OmnibotController
-import rospy
-from geometry_msgs.msg import Twist
-import sys, select, os, time
-import OmnibotController
-import numpy as np
-if os.name == 'nt':
-  import msvcrt
-else:
-  import tty, termios
-  
-import matplotlib.pyplot as plt
 from altfly import Fly
+import numpy as np
 seed_tweak = 2
 np.random.seed(42+seed_tweak)
-
-MAX_LIN_VEL = 100.00
-MAX_ANG_VEL = 100.00
-
-LIN_VEL_STEP_SIZE = 5.
-ANG_VEL_STEP_SIZE = 5.
+import time
 
 class RoboFly(Fly):
     '''
@@ -31,7 +13,7 @@ class RoboFly(Fly):
         super().__init__(timestep=3, vx=0.05, vy=0.05, p_angle=0.3)
         self.timescale = timescale
         self.state = 1
-        self.omnibot = OmnibotController()
+        #TODO add omnibot controller details
 
     def setup_tm(self):
         # This is hardcoded for expedience. A problem arises when timestep is too big, probabilities go over 1.
@@ -50,39 +32,32 @@ class RoboFly(Fly):
         vel_x = np.random.normal(loc=self.vx, scale=0.01)
         vel_y = np.random.normal(loc=self.vy, scale=0.01)
 
-        dx = (np.cos(np.radians(self.angle))*vel_x * self.timestep)
-        dy = (np.sin(np.radians(self.angle))*vel_y * self.timestep)
-        
-        movement = np.sqrt(dx*dx + dy*dy)
-        self.omnibot.move(movement, "forward")
-        
-        self.x = self.x + dx
-        self.y = self.y + dy
-        
+        self.x = self.x + (np.cos(np.radians(self.angle))*vel_x * self.timestep)
+        self.y = self.y + (np.sin(np.radians(self.angle))*vel_y * self.timestep)
         self.x_history.append(self.x)
         self.y_history.append(self.y)
 
         #TODO convert to robot-centric
         # TODO robot control
 
-        #time.sleep(self.timestep/self.timescale)
+        time.sleep(self.timestep/self.timescale)
 
     def turn(self):
         # Turn the fly
-        turn_angle = self.draw_from_turn_distribution()
-        self.angle += turn_angle
+        self.angle += self.draw_from_turn_distribution()
 
-        self.omnibot.turn(turn_angle)
-        #time.sleep(self.timestep/self.timescale)
+        #TODO convert to robot-centric
+        #TODO robot control
+        time.sleep(self.timestep/self.timescale)
 
 
     def wait(self):
-        self.bot.stop()
         time.sleep(self.timestep/self.timescale)
         #pass
-        
 if __name__=='__main__':
-    
+
+    import matplotlib.pyplot as plt
+
 
     def setup_plot(fly):
         fig = plt.figure()
@@ -108,8 +83,6 @@ if __name__=='__main__':
 
     fig, point, line = setup_plot(fly)
 
-    for i in range(10):
+    for i in range(10000):
         fly.step()
         update_plot(fig, point, line, fly)
-        
-    fly.omnibot.stop_clear()
