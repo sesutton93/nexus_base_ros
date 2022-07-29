@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<robot name="macroed" xmlns:xacro="http://ros.org/wiki/xacro">
+
+
+  <xacro:property name="height" value="0.115" />
+  <xacro:property name="wheeldiam" value="0.04" />
+  <xacro:property name="R" value="0.15" />
+  <xacro:property name="R2" value="0.125" />
+  <xacro:property name="left_wheel_theta" value="${60/180*pi}" />
+  <xacro:property name="back_wheel_theta" value="${180/180*pi}" />
+  <xacro:property name="right_wheel_theta" value="${300/180*pi}" />
+
+
+  <material name="dark_grey">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+
+  <material name="grey">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
+
+  <material name="yellow">
+    <color rgba="0.8 0.8 0.2 1"/>
+  </material>
+
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+          <mesh filename="package://nexus_base_ros/meshes/omnibot_body.dae"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${R}" length="${height}"/>
+      </geometry>
+    </collision>
+  </link>
+
+	<link name="left_wheel_link">
+		<visual>
+			<origin  rpy="${pi/2} 0 0" />
+			<geometry>
+				<mesh filename="package://nexus_base_ros/meshes/mecanum_wheel.dae"/>
+			</geometry>
+			<material name="grey"/>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+			<geometry>
+				<cylinder radius="${wheeldiam/2}" length="0.1"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="left_wheel_joint" type="continuous">
+		<axis xyz="0 1 0" rpy="0 0 0" />
+		<parent link="base_link"/>
+		<child link="left_wheel_link"/>
+		<origin xyz="${R2*cos(left_wheel_theta)} ${R2*sin(left_wheel_theta)} 0" rpy="0 0 ${left_wheel_theta-pi/2}"/>
+	</joint>
+
+
+	<link name="back_wheel_link">
+		<visual>
+			<origin  rpy="${back_wheel_theta+pi/2} 0 0" />
+			<geometry>
+				<mesh filename="package://nexus_base_ros/meshes/mecanum_wheel.dae"/>
+			</geometry>
+			<material name="grey"/>
+		</visual>
+		<collision>
+		<origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+			<geometry>
+				<cylinder radius="${wheeldiam/2}" length="0.1"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="back_wheel_joint" type="continuous">
+		<axis xyz="0 1 0" rpy="0 0 0"/>
+		<parent link="base_link"/>
+		<child link="back_wheel_link"/>
+		<origin xyz="${R2*cos(back_wheel_theta)} ${R2*sin(back_wheel_theta)} 0" rpy="0 0 ${back_wheel_theta-pi/2}"/>
+	</joint>
+
+	<link name="right_wheel_link">
+		<visual>
+		<origin  rpy="${pi/2} 0 0" />
+		<geometry>
+			<mesh filename="package://nexus_base_ros/meshes/mecanum_wheel.dae"/>
+		</geometry>
+		<material name="grey"/>
+		</visual>
+		<collision>
+			<origin  rpy="${pi/2} 0 0" />
+			<geometry>
+				<cylinder radius="${wheeldiam/2}" length="0.1"/>
+			</geometry>
+		</collision>
+	</link>
+	<joint name="right_wheel_joint" type="continuous">
+		<axis xyz="0 1 0" rpy="0 0 0" />
+		<parent link="base_link"/>
+		<child link="right_wheel_link"/>
+		<origin xyz="${R2*cos(right_wheel_theta)} ${R2*sin(right_wheel_theta)} 0" rpy="0 0 ${right_wheel_theta-pi/2}"/>
+	</joint>
+
+	<link name="lidar_link">
+		<visual>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+		<geometry>
+			<mesh filename="package://nexus_base_ros/meshes/RPLIDAR_A1M8.dae"/>
+		</geometry>
+		<material name="dark_grey"/>
+		</visual>
+	</link>
+	<joint name="lidar_joint" type="fixed">
+		<parent link="base_link"/>
+		<child link="lidar_link"/>
+		<origin xyz="0.095 0 0.115" rpy="0 0 0" />
+	</joint>
+</robot>
