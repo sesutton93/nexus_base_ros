@@ -165,6 +165,12 @@
 		<child link="lidar_link"/>
 		<origin xyz="0.095 0 0.115" rpy="0 0 0" />
 	</joint>
+	<link name="laser_frame"/>
+	<joint name="laser_lidar_joint" type="fixed">
+		<parent link="lidar_link"/>
+		<child link="laser_frame"/>
+		<origin xyz="0 0 0.06" rpy="0 0 0" />
+	</joint>
 
   <transmission name="left_wheel_tran">
     <type>transmission_interface/SimpleTransmission</type>

@@ -1,11 +1,11 @@
 # ROS wheelbase controller for the NEXUS Omni 4-Wheeled Mecanum Robot
 
-![4WD Mecanum Wheel Mobile Arduino Robotics Car](4WD_Mecanum_Wheel_Robotics_Car.jpg  "4WD Mecanum Wheel Mobile Arduino Robotics Car")
+![3WD Mecanum Wheel Mobile Arduino Robotics Car](3WD_Mecanum_Wheel_Robotics_Car.jpg  "3WD Mecanum Wheel Mobile Arduino Robotics Car")
 
 ## Required hardware
-This wheel controller has been developed for the 4WD Mecanum Wheel Mobile Arduino Robotics Car 10011 from [NEXUS ROBOT](https://www.nexusrobot.com/product/4wd-mecanum-wheel-mobile-arduino-robotics-car-10011.html)
+This wheel controller has been developed for the 3WD Mecanum Wheel Mobile Arduino Robotics Car 10011 from [NEXUS ROBOT](https://www.nexusrobot.com/product/3wd-100mm-omni-wheel-mobile-arduino-robot-kit-10013.html)
 
-For teleoperation of the Nexus wheelbase a (wireless) game pad like the Logitech F710 is recommended. The base controller runs on a PC or a Raspberry Pi 3B with ROS Melodic (-desktop) installed. To install  ROS Melodic on a Rasberry Pi, it is recommended to start with [Ubuntu MATE 18.04](https://ubuntu-mate.org/).
+For teleoperation of the Nexus wheelbase a (wireless) game pad like the Logitech F710 is recommended. The base controller runs on a PC or a Raspberry Pi 4B with ROS Melodic (-desktop) installed. To install  ROS Melodic on a Rasberry Pi, it is recommended to start with [Ubuntu MATE 18.04](https://ubuntu-mate.org/).
 
 Logitech F710 | ROS Melodic
 ------------- | -----------
